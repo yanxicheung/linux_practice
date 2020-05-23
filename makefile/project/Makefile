@@ -1,7 +1,8 @@
 all:clean main.out
 	@echo "clean first then compile then link"
+	@echo $(OBJS)
 
-OBJS = main.o tool1.o tool2.o 
+OBJS := $(patsubst %.c,%.o,$(wildcard *.c))
 CC = gcc
 CFLAGS += -c  -Wall -g
 
