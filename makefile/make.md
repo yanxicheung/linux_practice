@@ -1,6 +1,6 @@
 `执行`make时先找makefile，后找Makefile。
 
-# Demo：
+# 快速开始：
 
 ## 原始版本：
 
@@ -101,7 +101,9 @@ clean:
 	$(RM) *.o *.out -r
 ```
 
+# 实践：
 
+https://github.com/yanxicheung/usd
 
 # Q&A：
 
@@ -221,4 +223,5 @@ clean first then compile then link
 4. [Makefile中.PHONY的作用](https://www.cnblogs.com/idorax/p/9306528.html)
 5. [Makefile 中:= ?= += =的区别](https://www.cnblogs.com/zgq0/p/8716150.html)
 6. [Makefile的静态模式%.o : %.c](https://blog.csdn.net/u012351051/article/details/88600562)
+7. [makefile内置变量及自动变量](https://blog.csdn.net/hejinjing_tom_com/article/details/40781787)
 
