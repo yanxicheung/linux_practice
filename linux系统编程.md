@@ -137,13 +137,74 @@ g+s
 
 
 
+
+
+# 用宏定义MAX
+
+```c
+#include <stdio.h>
+
+#define MAX(a,b)  ((a)>(b)?(a):(b))  //有bug
+
+#define MAX_(a,b) ({typeof(a) A = (a),B = (b); A>B?A:B;})
+
+int max(int a,int b)
+{
+	return (a>b)?a:b;
+}
+/*
+	max(a,b) = 4
+	a = 4,b = 5
+	MAX(a,b) = 5
+	a = 4,b = 6
+	MAX_(a,b) = 1
+	a = 4,b = 5
+*/
+int main()
+{
+	int a = 3,b = 4;
+	printf("max(a,b) = %d\n",max(a++,b++));  // 4
+	printf("a = %d,b = %d\n",a,b);
+	
+	a = 3;
+	b = 4;
+	printf("MAX(a,b) = %d\n",MAX(a++,b++));
+	printf("a = %d,b = %d\n",a,b);
+	
+    a = 3;
+	b = 4;
+	printf("MAX_(a,b) = %d\n",MAX_(a++,b++));
+	printf("a = %d,b = %d\n",a,b);
+	return 0;
+}
+```
+
+
+
+```makefile
+SOURCE = ${wildcard *.c}
+OBJS = ${SOURCE:.c=.o}
+TARGET=main.out
+CC=gcc
+CFLAGS=-g -Wall -c
+
+${TARGET}:${OBJS}
+	${CC} $^ -o $@
+	
+${OBJS}:%.o:%.c
+	${CC} ${CFLAGS} $< -o $@
+
+.PHONY:clean
+clean:
+	${RM} *.o *.out -r
+```
+
+
+
 # Refrence：
 
-(1)[c语言中常见的几个段错误](https://blog.csdn.net/lvguangj/article/details/8099447)
-
-(2)[数据段、代码段、BSS段、堆栈段](https://blog.csdn.net/weixin_38233274/article/details/80321719)
-
-(3)[C/C++段错误问题排查和解决方法](https://blog.csdn.net/chenyulancn/article/details/51693128?utm_medium=distribute.pc_relevant.none-task-blog-baidujs-3)
-
-(4)[Linux下进程终止过程](https://www.cnblogs.com/brucemengbm/p/7002836.html)
+1. [c语言中常见的几个段错误](https://blog.csdn.net/lvguangj/article/details/8099447)
+2. [数据段、代码段、BSS段、堆栈段](https://blog.csdn.net/weixin_38233274/article/details/80321719)
+3. [C/C++段错误问题排查和解决方法](https://blog.csdn.net/chenyulancn/article/details/51693128?utm_medium=distribute.pc_relevant.none-task-blog-baidujs-3)
+4. [Linux下进程终止过程](https://www.cnblogs.com/brucemengbm/p/7002836.html)
 
