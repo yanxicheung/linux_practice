@@ -199,6 +199,179 @@ clean:
 	${RM} *.o *.out -r
 ```
 
+# 进程终止方式
+
+
+
+# 钩子函数
+
+
+
+# 命令行分析
+
+getopt()
+
+getopt_long()
+
+
+
+# 环境变量
+
+查看环境变量：export
+
+在将操作系统当作一个运行的程序时，可以将环境变量看作是全局变量。
+
+重要的环境变量：PATH
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+//打印所有环境变量
+extern char** environ;
+int main()
+{
+    int i = 0;
+    for(i = 0;environ[i]!=NULL;++i)
+    {
+        puts(environ[i]);
+    }
+    exit(0);
+}
+```
+
+## 高频接口：
+
+getenv();
+
+setenv();
+
+## C语言程序空间：
+
+
+
+# 并发的两种方式：
+
+## 信号
+
+**信号会打断阻塞的系统调用**，该系统调用会返回失败，通过判断errno可以知道是否是被信号打断;
+
+```c
+// 原始写法;
+sfd = open();
+if(sfd < 0)
+{
+    if(errno != EINTR)
+    {
+        perror("open failed");
+        exit(1);
+    }
+}
+//考虑阻塞的系统调用被信号打断;
+do
+{
+    sfd = open();
+    if(sfd < 0)
+    {
+        if(errno != EINTR)
+        {
+            perror("open failed");
+            exit(1);
+        }
+    }
+    
+}while(sfd<0);
+```
+
+
+
+
+
+### 信号的不可靠
+
+标准信号会丢失，实时信号不会丢失
+
+信号的行为不可靠：
+
+（1）handler不是人为调用，handler的执行现场由内核布置
+
+（2）一个信号在处理的同时，又来了一个相同的信号，由于执行现场是内核布置的，第二次的执行现场可能把第一次的冲掉了。
+
+
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+#include <signal.h>
+#include <unistd.h>
+// 程序退出了，信号就执行不了了;
+void handler(int s)
+{
+	write(STDOUT_FILENO,"!",1);
+}
+int main()
+{
+
+	int i;
+//	signal(SIGINT,SIG_IGN);
+
+	signal(SIGINT,handler);
+	for(i = 0;i<10;++i)
+	{
+		write(STDOUT_FILENO,"*",1);
+		sleep(1);
+	}
+	exit(0);
+}
+```
+
+
+
+### 可重入函数
+
+
+
+### 信号的响应过程
+
+
+
+### 常用函数
+
+signal
+
+kill ：发送信号
+
+raise：
+
+alarm：
+
+pause：
+
+abort：
+
+system：
+
+sleep：
+
+### 信号集
+
+
+
+### 信号屏蔽字和pending集的处理
+
+
+
+### 扩展
+
+sigsuspend
+
+signaction
+
+setitimer
+
+
+
+信号处理函数中不要使用不可重复的函数，不要操作IO，不要处理耗时长的任务。
+
 
 
 # Refrence：
