@@ -36,6 +36,10 @@ pthread_self();
 
 pthread_create();
 
+线程的调度取决于调度器的策略
+
+
+
 线程的终止
 
 栈的清理
