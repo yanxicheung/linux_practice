@@ -35,6 +35,10 @@ Segment fault 之所以能够流行于世，是与glibc库中基本所有的函�
 <2>在使用数组的时候是否被初始化，数组下标是否越界，数组元素是否存在等
 <3>在变量处理的时候变量的格式控制是否合理等
 
+（6）
+
+int ret = pthread_create(tid + i - BEG,NULL,NULL,p);  线程函数的地址为空
+
 # free:
 
 The free() function frees the memory space pointed to by ptr, which must have been returned by a previous call to malloc(), calloc() or realloc(). Otherwise, or if free(ptr) has already been called before, undefined behavior occurs. **If ptr is NULL, no operation is performed.**
