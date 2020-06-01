@@ -1,34 +1,36 @@
 #include <stdio.h>
 #include <pthread.h>
-#include <sys/types.h>
-#include <unistd.h>
 #include <stdlib.h>
-#include <string.h>
-int g = 10;
-pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-void *add(void *arg)
+
+#define THREAD_NUM 4
+pthread_mutex_t mutex[THREAD_NUM];
+
+void *print(void *arg)
 {
-	sleep(1);
-	pthread_mutex_lock(&mutex);
-	g++;
-	printf("g = %d\n",g);
-	pthread_mutex_unlock(&mutex);
+	char i = (char)arg;
+    pthread_mutex_lock(&mutex[i]);
+	printf("%c\n",i+'a');
+	pthread_mutex_unlock(&mutex[(i+1)%THREAD_NUM]);
 	pthread_exit(NULL);
 }
 
 int main(int argc,char *argv[])
 {
 	unsigned int i = 0;
-	pthread_t tid[20];
-	for(i = 0;i<20;++i)
-	{
-  		pthread_create(tid+i,NULL,add,NULL);
-	}
+	pthread_t tid[THREAD_NUM];
 	
-    for(i = 0;i<20;++i)
+	for(i = 0;i<THREAD_NUM;++i)
+	{
+		pthread_mutex_init(&mutex[i],NULL);
+		pthread_mutex_lock(&mutex[i]);
+  		pthread_create(tid+i,NULL,print,(void*)i);
+	}
+	pthread_mutex_unlock(&mutex[0]);
+    for(i = 0;i<THREAD_NUM;++i)
 	{
   		pthread_join(tid[i],NULL);
+  		pthread_mutex_destroy(&mutex[i]);
 	}
-	pthread_mutex_destroy(&mutex);
+	
 	exit(0);
 }	
