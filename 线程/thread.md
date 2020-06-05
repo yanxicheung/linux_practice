@@ -387,6 +387,8 @@ ulimit -a：用来显示当前的各种用户进程限制
 
 # 互斥量
 
+存在冲突：
+
 ```c
 #include <stdio.h>
 #include <pthread.h>
@@ -398,8 +400,8 @@ int g = 10;
 
 void *add(void *arg)
 {
-	sleep(1);
 	g++;
+    sleep(1);
 	printf("g = %d\n",g);
 	pthread_exit(NULL);
 }
@@ -421,23 +423,155 @@ int main(int argc,char *argv[])
 }	
 ```
 
+使用锁：依次打印出11-30
+
+```c
+#include <stdio.h>
+#include <pthread.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
+int g = 10;
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+void *add(void *arg)
+{
+	pthread_mutex_lock(&mutex);// lock和unlock之间是临接区
+    sleep(1);
+	g++;
+	printf("g = %d\n",g);
+	pthread_mutex_unlock(&mutex);
+	pthread_exit(NULL);
+}
+
+int main(int argc,char *argv[])
+{
+	unsigned int i = 0;
+	pthread_t tid[20];
+	for(i = 0;i<20;++i)
+	{
+  		pthread_create(tid+i,NULL,add,NULL);
+	}
+	
+    for(i = 0;i<20;++i)
+	{
+  		pthread_join(tid[i],NULL);
+	}
+	pthread_mutex_destroy(&mutex);
+	exit(0);
+}	
+```
+
+要求依次打印出abcd，但是如下解法无法解决问题：
+
+```c
+#include <stdio.h>
+#include <pthread.h>
+#include <stdlib.h>
+
+#define THREAD_NUM 4
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+void *print(void *arg)
+{
+    pthread_mutex_lock(&mutex);
+	char c = *(char*)arg;
+	printf("%c\n",c);
+	pthread_mutex_unlock(&mutex);
+	pthread_exit(NULL);
+}
+
+int main(int argc,char *argv[])
+{
+	unsigned int i = 0;
+	pthread_t tid[THREAD_NUM];
+	
+	for(i = 0;i<THREAD_NUM;++i)
+	{
+		char c = i + 'a';  //虽然是局部变量但是每次循环地址可能还是一样的;
+  		pthread_create(tid+i,NULL,print,&c);
+	}
+	
+    for(i = 0;i<THREAD_NUM;++i)
+	{
+  		pthread_join(tid[i],NULL);
+	}
+	pthread_mutex_destroy(&mutex);
+	exit(0);
+}	
+```
+
+解决问题：
+
+```c
+#include <stdio.h>
+#include <pthread.h>
+#include <stdlib.h>
+
+#define THREAD_NUM 4
+pthread_mutex_t mutex[THREAD_NUM];
+
+static int next(int n)
+{
+	if(n + 1 == THREAD_NUM)
+		return 0;
+	return n + 1;
+}
+
+static void *print(void *arg)
+{
+	char i = (char)arg;
+    pthread_mutex_lock(&mutex[i]);  //给自己加锁;
+	printf("%c\n",i+'a');
+	pthread_mutex_unlock(&mutex[next(i)]);//解锁下一个线程;
+	pthread_exit(NULL);
+}
+
+int main(int argc,char *argv[])
+{
+	unsigned int i = 0;
+	pthread_t tid[THREAD_NUM];
+	
+	for(i = 0;i<THREAD_NUM;++i)
+	{
+		pthread_mutex_init(&mutex[i],NULL);
+		pthread_mutex_lock(&mutex[i]);
+  		pthread_create(tid+i,NULL,print,(void *)i);  // 将(void *)i换成&i有可能造成死锁
+	}
+	pthread_mutex_unlock(&mutex[0]);
+    for(i = 0;i<THREAD_NUM;++i)
+	{
+  		pthread_join(tid[i],NULL);
+  		pthread_mutex_destroy(&mutex[i]);
+	}
+	exit(0);
+}	
+```
+
+# 练习
+
+四个线程计算质数
+
+注意临界区的任何一个跳转语句，如果跳转到临界区外，需要先解锁后才能跳转。
 
 
-pthread_mutex_t类型
+
+# 条件变量
+
+pthread_cond_init
+
+pthread_cond_destroy
+
+pthread_cond_broadcast
+
+pthread_cond_signal
+
+pthread_cond_timewait
+
+pthread_cond_wait
 
 
 
-pthread_mutex_init
 
-pthread_mutex_destroy
-
-
-
-pthread_mutex_lock
-
-pthread_mutex_unlock
-
-lock和unlock之间是临接区
 
 # Refrence：
 
